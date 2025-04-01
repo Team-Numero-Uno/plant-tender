@@ -1,26 +1,37 @@
 #include "Adafruit_seesaw.h"
 
 Adafruit_seesaw ss;
+bool waterLow = false;
+int desiredSaturation = 60;
+bool flowerOrHerb = false; // true for flower; false for herb;
 
 void setup() {
   Serial.begin(115200);
 
-  Serial.println("seesaw Soil Sensor example!");
-  
   if (!ss.begin(0x36)) {
-    Serial.println("ERROR! seesaw not found");
+    Serial.println("ERROR! Soil Sensor not found");
     while(1) delay(1);
   } else {
-    Serial.print("seesaw started! version: ");
-    Serial.println(ss.getVersion(), HEX);
+    Serial.print("Soil Sensor started!");
   }
 }
 
 void loop() {
-  float tempC = ss.getTemp();
-  uint16_t capread = ss.touchRead(0);
+	// set desired saturation percentage based on flower or herb
+	if (flower = false){
+		desiredSaturation = 40;
+	}else{
+		desiredSaturation = 60;
+	}
 
-  Serial.print("Temperature: "); Serial.print(tempC); Serial.println("*C");
-  Serial.print("Capacitive: "); Serial.println(capread);
+	// read soil moisture and determine if water is true.
+	uint16_t soilMoisture = map(ss.touchRead(0), 0, 1023, 0, 100);
+	if (soilMoisture < desiredSaturation){
+		waterLow = true;
+	}
+	else {
+		waterLow = false;
+	}
+
   delay(100);
 }
