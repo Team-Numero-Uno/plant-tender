@@ -1,0 +1,36 @@
+#include <LiquidCrystal.h>
+
+int SensorPin = A1;  // Potentiometer connected to A1
+int SensorValue;
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+void setup()
+{
+    pinMode(SensorPin, INPUT);
+    lcd.begin(16, 2);
+
+    Serial.begin(9600);
+    Serial.println("Water Level Simulation Sensor");
+}
+
+void loop()
+{
+    delay(500);
+    SensorValue = analogRead(SensorPin);
+
+    lcd.clear();  
+    lcd.setCursor(0, 0);
+    lcd.print("  Water Level:");
+    
+    lcd.setCursor(6, 1);
+    lcd.print(SensorValue);
+    lcd.setCursor(10, 1);
+    lcd.print("mm");
+
+
+    Serial.print("Water Level Value (in): ");
+    lcd.setCursor(0, 1);
+  	Serial.println(SensorValue);
+  
+}

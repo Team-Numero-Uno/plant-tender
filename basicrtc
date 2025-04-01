@@ -1,8 +1,8 @@
 #include <Wire.h>
 #include <RTClib.h>
 
-RTC_PCF8523 rtc;
-const int address = 0x42; ////idk???
+RTC_PCF8523 rtc; //create objecto
+const int address = 0x42; //address for communication
 
 void setup(){
 Serial.begin(9600);
@@ -16,15 +16,15 @@ Serial.println("Couldn't find RTC");
 while (1);
 }
 
-if (!rtc.initialized()){
+if (!rtc.initialized()){ //make sure connected
 Serial.println("Rtc is not initialized, setting default time.");
-rtc.adjust(DateTime(F(_DATE_), F(_TIME_)));
+rtc.adjust(DateTime(F(_DATE_), F(_TIME_))); //set default time
 }
 }
 void loop(){
 if (Serial.avaiable()){
-String command = Serial.readStringUntil('\n');
-command.trim();
+String command = Serial.readStringUntil('\n'); //read input command
+command.trim(); //remove whitesapce
 
 if(command.startsWith("SET_TIME")){
 setTime(command.substring(9));
@@ -35,7 +35,7 @@ sendSerialTime();
 }
 }
 
-void setTime(String timeString){
+void setTime(String timeString){ //YYYY/MM/DD format
 int year, month, day, hour, minute, second;
 if (sscanf(timeString.c_str(), "%d/%d/%d %d:%d:%d:", &year, &month, %day, %hour, %minute, %second) ==6){
 rtc.adjust(DateTime(year,month,day,hour,minute,second));
@@ -46,7 +46,7 @@ Serial.println("Invalid time format");
 }
 }
 
-void sendSerialTime(){
+void sendSerialTime(){  //send the current time 
 DateTime now = rtc.now();
 Serial.print(now.year(), DEC);
 Serial.print('/');
@@ -61,7 +61,7 @@ Serial.print(':');
 Serial.println(now.second(),DEC);
 }
 
-void sendTime(){
+void sendTime(){ //for sendig to light system
 DateTime now = rtc.now();
 Wire.write(now.year()-2000);
 Wire.write(now.month());
