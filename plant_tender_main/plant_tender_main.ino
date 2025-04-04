@@ -1,9 +1,16 @@
 #include "Adafruit_seesaw.h"
 
+// soil moisture subsystem
 Adafruit_seesaw ss;
 bool waterLow = false;
 int desiredSaturation = 60;
 bool flowerOrHerb = false; // true for flower; false for herb;
+
+// Watering mechanism
+const int pumpPin = 9;
+const int waterLevelSensorPin = A0;
+const int lowWaterVal = 10;
+bool tankLow = false;
 
 void setup() {
   Serial.begin(115200);
@@ -18,6 +25,9 @@ void setup() {
 }
 
 void loop() {
+  /*
+    Soil Moisture Subsystem
+  */
 	// set desired saturation percentage based on flower or herb
 	if (flower = false){
 		desiredSaturation = 40;
@@ -33,6 +43,22 @@ void loop() {
 	else {
 		waterLow = false;
 	}
+  
+  /*
+    Watering Mechanism
+  */
+  int sensorValue = analogRead(waterLevelSensorPin);
+  if (sensorValue >= lowWaterVal){
+    tankLow = false;
+  }else {
+    tankLow = true;
+  }
+  
+  if (waterLow && !tankLow){
+    analogWrite(pumpPin, 255);
+  }else{
+    analogWrite(pumpPin, 0);
+  }
 
   delay(100);
 }
