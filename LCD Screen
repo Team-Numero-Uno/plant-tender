@@ -1,36 +1,47 @@
 #include <LiquidCrystal.h>
 
-int SensorPin = A1;  // Potentiometer connected to A1
+// Define variables for the LCD’s pin connections to the Uno
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+
+// Use the library to initialize an instance of the LCD class
+LiquidCrystal myLCD(rs, en, d4, d5, d6, d7);
+
+// Define sensor pin
+const int SensorPin = A1;
 int SensorValue;
 
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-
-void setup()
-{
-    pinMode(SensorPin, INPUT);
-    lcd.begin(16, 2);
-
+void setup() {
+    // Initialize LCD
+    myLCD.begin(16, 2);
+    
+    // Start serial communication
     Serial.begin(9600);
     Serial.println("Water Level Simulation Sensor");
+
+    // Set sensor pin mode
+    pinMode(SensorPin, INPUT);
 }
 
-void loop()
-{
-    delay(500);
+void loop() {
+    // Read sensor value
     SensorValue = analogRead(SensorPin);
 
-    lcd.clear();  
-    lcd.setCursor(0, 0);
-    lcd.print("  Water Level:");
-    
-    lcd.setCursor(6, 1);
-    lcd.print(SensorValue);
-    lcd.setCursor(10, 1);
-    lcd.print("mm");
+    // Clear and update LCD
+    myLCD.clear();
+    myLCD.setCursor(0, 0);
+    myLCD.print("Water Level:");
 
+    myLCD.setCursor(0, 1);
+    if (SensorValue >= 500) {
+        myLCD.print("Adequate");
+    } else {
+        myLCD.print("Low");
+    }
 
-    Serial.print("Water Level Value (in): ");
-    lcd.setCursor(0, 1);
-  	Serial.println(SensorValue);
-  
+    // Print to serial monitor
+    Serial.print("Water Level Value: ");
+    Serial.println(SensorValue);
+
+    // Delay for readability
+    delay(500);
 }
