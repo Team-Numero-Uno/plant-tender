@@ -8,6 +8,7 @@ bool flowerOrHerb = false; // true for flower; false for herb;
 void setup() {
   Serial.begin(115200);
 
+  // confirm the connection
   if (!ss.begin(0x36)) {
     Serial.println("ERROR! Soil Sensor not found");
     while(1) delay(1);
