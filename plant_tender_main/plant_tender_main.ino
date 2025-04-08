@@ -67,21 +67,21 @@ void loop() {
   }
 
 	/*
-	Light detection and Emission
+		Light detection and Emission
 	*/
   int raw_light = analogRead(lightSensor); // read the raw value from lightSensor pin (A1)
   int light = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100
   
-  // if conditions are right for light to turn on
+  // if conditions are right, turn the light on
   if (light <= 40) 
   {
     digitalWrite(relaySwitchPin, HIGH);
   }
 
-  // else, turn lights on
+  // else, turn lights off
   else
   {
-	  digitalWrite(relaySwitchPin, LOW);
+		digitalWrite(relaySwitchPin, LOW);
   }
  
   Serial.print("Light level: "); 
