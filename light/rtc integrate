@@ -4,6 +4,8 @@
 
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; //lcd pinss
 LiquidCrystal myLCD(rs, en, d4, d5, d6, d7);
+const int lightSensor = A1; 
+const int relaySwitchPin = 7;
 
 
 RTC_PCF8523 rtc;
@@ -19,7 +21,8 @@ void setup() {
   }
 
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); //sets time automaticalay from rtc
-
+  Serial.begin(9600); //begin Serial Communication
+  pinMode(relaySwitchPin, OUTPUT); // set relaySwitchPin to output
 
 }
 
@@ -53,6 +56,27 @@ void loop() {
   Serial.print(now.second());
   Serial.println();
   Serial.println();
+
+  /*
+    Light Detection and Emission
+  */
+  int raw_light = analogRead(lightSensor); // read the raw value from lightSensor pin (A1)
+  int light = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100
+  
+  // if conditions are right for light to turn on
+  if (light <= 40 && now.hour() > 6 && now.hour() < 18) 
+  {
+    digitalWrite(relaySwitchPin, HIGH);
+  }
+
+  // else, turn lights on
+  else
+  {
+	  digitalWrite(relaySwitchPin, LOW);
+  }
+ 
+  Serial.print("Light level: "); 
+  Serial.println(light); // print the light value in Serial Monitor
 
   delay(1000); //prints each new second 
   }
