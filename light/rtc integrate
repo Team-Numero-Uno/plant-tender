@@ -64,7 +64,7 @@ void loop() {
   int light = map(raw_light, 0, 1023, 0, 100); // map the value from 0, 1023 to 0, 100
   
   // if conditions are right for light to turn on
-  if (light <= 40 && now.hour() > 6 && now.hour() < 18) 
+  if (light <= 70 && now.hour() > 6 && now.hour() < 18) 
   {
     digitalWrite(relaySwitchPin, HIGH);
   }
