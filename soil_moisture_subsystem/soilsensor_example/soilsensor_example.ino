@@ -17,10 +17,17 @@ void setup() {
 }
 
 void loop() {
-  float tempC = ss.getTemp();
+  //float tempC = ss.getTemp();
   uint16_t capread = ss.touchRead(0);
+  capread = map(capread, 0, 1023, 0, 100);
 
-  Serial.print("Temperature: "); Serial.print(tempC); Serial.println("*C");
+  if (capread < 60){
+    Serial.println("Plant needs water");
+  } else{
+    Serial.println("The plant does not need water");
+  }
+
+  //Serial.print("Temperature: "); Serial.print(tempC); Serial.println("*C");
   Serial.print("Capacitive: "); Serial.println(capread);
   delay(100);
 }
