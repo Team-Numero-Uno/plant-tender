@@ -1,72 +1,58 @@
-#include <Wire.h>
+#include <Wire.h>       //fjnal seperatye rtc code 
 #include <RTClib.h>
+#include <LiquidCrystal.h>
 
-RTC_PCF8523 rtc; //create objecto
-const int address = 0x42; //address for communication
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2; //lcd pinss
+LiquidCrystal myLCD(rs, en, d4, d5, d6, d7);
 
-void setup(){
-Serial.begin(9600);
-while (!Serial);
 
-Wire.begin(address);
-Wire.onRequest(sendTime);
+RTC_PCF8523 rtc;
 
-if (!rtc.begin()){
-Serial.println("Couldn't find RTC");
-while (1);
-}
+void setup() {
+  myLCD.begin(16, 2);  //lcd initaitlzaiton
+  Serial.begin(9600); 
 
-if (!rtc.initialized()){ //make sure connected
-Serial.println("Rtc is not initialized, setting default time.");
-rtc.adjust(DateTime(F(_DATE_), F(_TIME_))); //set default time
-}
-}
-void loop(){
-if (Serial.avaiable()){
-String command = Serial.readStringUntil('\n'); //read input command
-command.trim(); //remove whitesapce
+  if (!rtc.begin()) {
+    myLCD.print("Couldn't find RTC"); //errror checks
+    Serial.println("Couldn't find RTC");
+    while (1);
+  }
 
-if(command.startsWith("SET_TIME")){
-setTime(command.substring(9));
-}
-else if (command == "GET_TIME"){
-sendSerialTime();
-}
-}
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); //sets time automaticalay from rtc
+
+
 }
 
-void setTime(String timeString){ //YYYY/MM/DD format
-int year, month, day, hour, minute, second;
-if (sscanf(timeString.c_str(), "%d/%d/%d %d:%d:%d:", &year, &month, %day, %hour, %minute, %second) ==6){
-rtc.adjust(DateTime(year,month,day,hour,minute,second));
-Serial.println("Time set successfully");
-}
-else{
-Serial.println("Invalid time format");
-}
-}
+void loop() {
+  DateTime now = rtc.now(); //gets time ^^^^^^^
 
-void sendSerialTime(){  //send the current time 
-DateTime now = rtc.now();
-Serial.print(now.year(), DEC);
-Serial.print('/');
-Serial,print(now.month(),DEC);
-Serial.print('/');
-Serial.print(now.day(), DEC);
-Serial.print(' ');
-Serial.print(now.hour(), DEC);
-Serial.print(':');
-Serial.print(now.minute(), DEC);
-Serial.print(':');
-Serial.println(now.second(),DEC);
-}
+  // Display time code below (lcd)
+  myLCD.setCursor(0, 0);
+  myLCD.print("Time: ");
+  if (now.hour() < 10) myLCD.print('0');    
+  myLCD.print(now.hour());
+  myLCD.print(':');
+  if (now.minute() < 10) myLCD.print('0');
+  myLCD.print(now.minute());
+  myLCD.print(':');
+  if (now.second() < 10) myLCD.print('0');
+  myLCD.print(now.second());
+// for right time formatting^^^^^^^^
 
-void sendTime(){ //for sendig to light system
-DateTime now = rtc.now();
-Wire.write(now.year()-2000);
-Wire.write(now.month());
-Wire.write(now.day));
-Wire.write(now.hour());
-Wire.write(now.minute());
-Wire.write(now.second());
-}
+
+
+  //dispaky time below (serial montior)
+
+  Serial.print("Hours: ");
+  Serial.print(now.hour());
+  Serial.println();
+  Serial.print("Minutes:" );
+  Serial.print(now.minute());
+  Serial.println();
+  Serial.print("Seconds: ");
+  Serial.print(now.second());
+  Serial.println();
+  Serial.println();
+
+  delay(1000); //prints each new second 
+  }
