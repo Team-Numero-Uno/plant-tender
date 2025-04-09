@@ -3,8 +3,7 @@
 // soil moisture subsystem
 Adafruit_seesaw ss;
 bool waterLow = false;
-int desiredSaturation = 60;
-bool flowerOrHerb = false; // true for flower; false for herb;
+const int setSaturation = 60;
 
 // Watering mechanism
 const int pumpPin = 9;
@@ -34,21 +33,19 @@ void loop() {
   /*
     Soil Moisture Subsystem
   */
-	// set desired saturation percentage based on flower or herb
-	if (flower = false){
-		desiredSaturation = 40;
-	}else{
-		desiredSaturation = 60;
-	}
+	// read soil moisture 
+	uint16_t percent_soil = map(ss.touchRead(0), 0, 1023, 0, 100);
 
-	// read soil moisture and determine if water is true.
-	uint16_t soilMoisture = map(ss.touchRead(0), 0, 1023, 0, 100);
-	if (soilMoisture < desiredSaturation){
-		waterLow = true;
-	}
-	else {
-		waterLow = false;
-	}
+  // determine if water is needed 
+  if (percent_soil < setSaturation) {
+    waterLow = true;
+  } else if (percent_soil == 6406) {
+    // soil sensor error; restart
+    ss.begin(0x36);
+    Serial.println("Soil Sensor RESTART.");
+  } else {
+    waterLow = false;
+  }
   
   /*
     Watering Mechanism

@@ -4,12 +4,13 @@ Adafruit_seesaw ss;
 
 void setup() {
   Serial.begin(115200);
+  delay(4000);
 
   Serial.println("seesaw Soil Sensor example!");
-  
+
   if (!ss.begin(0x36)) {
     Serial.println("ERROR! seesaw not found");
-    while(1) delay(1);
+    while (1) delay(1);
   } else {
     Serial.print("seesaw started! version: ");
     Serial.println(ss.getVersion(), HEX);
@@ -17,17 +18,18 @@ void setup() {
 }
 
 void loop() {
-  //float tempC = ss.getTemp();
-  uint16_t capread = ss.touchRead(0);
-  capread = map(capread, 0, 1023, 0, 100);
+  int percent_soil = map(ss.touchRead(0), 0, 1023, 0, 100); 
 
-  if (capread < 60){
+  if (percent_soil < 60) {
     Serial.println("Plant needs water");
-  } else{
+  } else if (percent_soil == 6406) {
+    ss.begin(0x36);
+    Serial.println("Soil Sensor RESTART.");
+  } else {
     Serial.println("The plant does not need water");
   }
 
-  //Serial.print("Temperature: "); Serial.print(tempC); Serial.println("*C");
-  Serial.print("Capacitive: "); Serial.println(capread);
+  Serial.print("Capacitive: ");
+  Serial.println(percent_soil);
   delay(100);
 }
