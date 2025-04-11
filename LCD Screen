@@ -7,41 +7,90 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal myLCD(rs, en, d4, d5, d6, d7);
 
 // Define sensor pin
-const int SensorPin = A1;
+const int waterSensorPin = A0;
 int SensorValue;
 
-void setup() {
-    // Initialize LCD
-    myLCD.begin(16, 2);
-    
-    // Start serial communication
-    Serial.begin(9600);
-    Serial.println("Water Level Simulation Sensor");
+int button = 7;  //button is connected to digital pin 7
+int bVal = 0;
+int mode = 0;
 
-    // Set sensor pin mode
-    pinMode(SensorPin, INPUT);
+// Timing variables
+unsigned long previousMillis = 0;
+const unsigned long interval = 500;
+
+void setup() {
+  // Initialize LCD
+  myLCD.begin(16, 2);
+
+  // Start serial communication
+  Serial.begin(9600);
+  Serial.println("Water Level Simulation Sensor");
+
+  // Set sensor pin mode
+  pinMode(waterSensorPin, INPUT);
+
+  // Read value of button
+  pinMode(button, INPUT);
 }
 
 void loop() {
-    // Read sensor value
-    SensorValue = analogRead(SensorPin);
+  // Read sensor value
+  SensorValue = analogRead(waterSensorPin);
 
-    // Clear and update LCD
-    myLCD.clear();
-    myLCD.setCursor(0, 0);
-    myLCD.print("Water Level:");
+  //read the value of the button when pressed
+  bVal = digitalRead(button);
 
-    myLCD.setCursor(0, 1);
-    if (SensorValue >= 500) {
+  if (bVal == 1) {
+    mode = mode + 1;
+    mode = mode % 4;
+    delay(200); // optional debounce delay
+  }
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    if (mode == 1) {
+      myLCD.clear();
+      myLCD.setCursor(0, 0);
+      myLCD.print("Water Tank Level:");
+
+      myLCD.setCursor(0, 1);
+      if (SensorValue >= 10) {
         myLCD.print("Adequate");
-    } else {
+      } else {
         myLCD.print("Low");
+      }
+    }
+
+    else if (mode == 2) {
+      myLCD.clear();
+      myLCD.setCursor(0, 0);
+      myLCD.print("Soil Mositure:");
+
+      myLCD.setCursor(0, 1);
+      if (SensorValue >= 500) {
+        myLCD.print("Adequate");
+      } else {
+        myLCD.print("Low");
+      }
+    }
+
+    else if (mode == 3) {
+      myLCD.clear();
+      myLCD.setCursor(0, 0);
+      myLCD.print("Time:");
+
+      myLCD.setCursor(0, 1);
+      if (SensorValue >= 500) {
+        myLCD.print("Adequate");
+      } else {
+        myLCD.print("Low");
+      }
     }
 
     // Print to serial monitor
     Serial.print("Water Level Value: ");
     Serial.println(SensorValue);
-
-    // Delay for readability
-    delay(500);
+  }
 }
