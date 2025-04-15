@@ -1,96 +1,123 @@
+#include <Wire.h>
+#include <RTClib.h>
 #include <LiquidCrystal.h>
 
-// Define variables for the LCD’s pin connections to the Uno
+// LCD Pins
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
-
-// Use the library to initialize an instance of the LCD class
 LiquidCrystal myLCD(rs, en, d4, d5, d6, d7);
 
-// Define sensor pin
+// Sensor Pins
 const int waterSensorPin = A0;
-int SensorValue;
+const int lightSensor = A1;
+const int button = 7;          // Mode switch button
+const int relaySwitchPin = 6;  // Relay control
 
-int button = 7;  //button is connected to digital pin 7
+// RTC and time constants
+RTC_PCF8523 rtc;
+const int sunrise = 6;
+const int sunset = 18;
+
+// Variables
+int SensorValue;
 int bVal = 0;
 int mode = 0;
-
-// Timing variables
 unsigned long previousMillis = 0;
 const unsigned long interval = 500;
 
 void setup() {
-  // Initialize LCD
   myLCD.begin(16, 2);
-
-  // Start serial communication
   Serial.begin(9600);
-  Serial.println("Water Level Simulation Sensor");
 
-  // Set sensor pin mode
+  if (!rtc.begin()) {
+    myLCD.print("Couldn't find RTC");
+    Serial.println("Couldn't find RTC");
+    while (1);
+  }
+
+  // Suggestion from chatgpt: Only use this line ONCE to set the RTC, then comment it out
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
   pinMode(waterSensorPin, INPUT);
-
-  // Read value of button
+  pinMode(lightSensor, INPUT);
   pinMode(button, INPUT);
+  pinMode(relaySwitchPin, OUTPUT);
+
+  Serial.println("System Initialized");
 }
 
 void loop() {
-  // Read sensor value
+  DateTime now = rtc.now();
   SensorValue = analogRead(waterSensorPin);
+  int raw_light = analogRead(lightSensor);
+  int light = map(raw_light, 0, 1023, 0, 100);
 
-  //read the value of the button when pressed
   bVal = digitalRead(button);
-
   if (bVal == 1) {
-    mode = mode + 1;
-    mode = mode % 4;
-    delay(200); // optional debounce delay
+    mode = (mode + 1) % 4;
+    delay(200); // debounce
   }
 
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
-    if (mode == 1) {
-      myLCD.clear();
+    myLCD.clear();
+
+    if (mode == 0) {
+      myLCD.setCursor(0, 0);
+      myLCD.print("Light Level: ");
+      myLCD.print(light);
+
+      if (light <= 70 && now.hour() > sunrise && now.hour() < sunset) {
+        digitalWrite(relaySwitchPin, HIGH);
+        myLCD.setCursor(0, 1);
+        myLCD.print("Lights: ON");
+      } else {
+        digitalWrite(relaySwitchPin, LOW);
+        myLCD.setCursor(0, 1);
+        myLCD.print("Lights: OFF");
+      }
+
+      Serial.print("Light level: ");
+      Serial.println(light);
+
+    } else if (mode == 1) {
       myLCD.setCursor(0, 0);
       myLCD.print("Water Tank Level:");
-
       myLCD.setCursor(0, 1);
-      if (SensorValue >= 10) {
-        myLCD.print("Adequate");
-      } else {
-        myLCD.print("Low");
-      }
-    }
+      myLCD.print(SensorValue >= 10 ? "Adequate" : "Low");
 
-    else if (mode == 2) {
-      myLCD.clear();
+      Serial.print("Water Level Value: ");
+      Serial.println(SensorValue);
+
+    } else if (mode == 2) {
       myLCD.setCursor(0, 0);
-      myLCD.print("Soil Mositure:");
-
+      myLCD.print("Soil Moisture:");
       myLCD.setCursor(0, 1);
-      if (SensorValue >= 500) {
-        myLCD.print("Adequate");
-      } else {
-        myLCD.print("Low");
-      }
-    }
+      myLCD.print(SensorValue >= 500 ? "Adequate" : "Low");
 
-    else if (mode == 3) {
-      myLCD.clear();
+      Serial.print("Soil Moisture Value: ");
+      Serial.println(SensorValue);
+
+    } else if (mode == 3) {
       myLCD.setCursor(0, 0);
-      myLCD.print("Time:");
-
+      myLCD.print("Time: ");
       myLCD.setCursor(0, 1);
-      if (SensorValue >= 500) {
-        myLCD.print("Adequate");
-      } else {
-        myLCD.print("Low");
-      }
-    }
+      if (now.hour() < 10) myLCD.print('0');
+      myLCD.print(now.hour());
+      myLCD.print(':');
+      if (now.minute() < 10) myLCD.print('0');
+      myLCD.print(now.minute());
+      myLCD.print(':');
+      if (now.second() < 10) myLCD.print('0');
+      myLCD.print(now.second());
 
-    // Print to serial monitor
-    Serial.print("Water Level Value: ");
-    Serial.println(SensorValue);
+      Serial.print("Hours: ");
+      Serial.println(now.hour());
+      Serial.print("Minutes: ");
+      Serial.println(now.minute());
+      Serial.print("Seconds: ");
+      Serial.println(now.second());
+    }
   }
 }
