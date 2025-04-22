@@ -80,7 +80,7 @@ void loop() {
     Watering Mechanism
   */
   int sensorValue = analogRead(waterLevelSensorPin);
-  if (sensorValue >= lowWaterVal) {
+  if (sensorValue <= lowWaterVal) {
     tankLow = false;
   } else {
     tankLow = true;
