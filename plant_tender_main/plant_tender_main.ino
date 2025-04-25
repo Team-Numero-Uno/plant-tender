@@ -5,7 +5,7 @@
 
 // soil moisture subsystem
 Adafruit_seesaw ss;
-bool waterLow = false;
+bool waterLow = true;
 const int setSaturation = 60;
 
 // Watering mechanism
@@ -52,6 +52,7 @@ void setup() {
     myLCD.print("Couldn't find RTC");
     Serial.println("Couldn't find RTC");
   }
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); //sets time automaticalay from rtc
 }
 
 void loop() {
@@ -81,9 +82,9 @@ void loop() {
   */
   int sensorValue = analogRead(waterLevelSensorPin);
   if (sensorValue <= lowWaterVal) {
-    tankLow = false;
-  } else {
     tankLow = true;
+  } else {
+    tankLow = false;
   }
 
   if (waterLow && !tankLow) {
@@ -141,7 +142,7 @@ void loop() {
         myLCD.setCursor(0, 0);
         myLCD.print("Water Tank Level:");
         myLCD.setCursor(0, 1);
-        myLCD.print(tankLow ? "Adequate" : "Low");
+        myLCD.print(tankLow ? "Low" : "Adequate");
 
     } else if (mode == 2) {
         myLCD.setCursor(0, 0);
