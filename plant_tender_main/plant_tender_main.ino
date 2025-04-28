@@ -155,16 +155,24 @@ void loop() {
         myLCD.print("Time: ");
         myLCD.setCursor(0, 1);
 
-        if (now.hour() < 10) myLCD.print('0');
-          myLCD.print(now.hour());
-          myLCD.print(':');
+       myLCD.setCursor(0, 1);
 
-        if (now.minute() < 10) myLCD.print('0');
-          myLCD.print(now.minute());
-          myLCD.print(':');
+if (now.hour() < 10) {
+  myLCD.print('0');
+}
+myLCD.print(now.hour());
+myLCD.print(':');
 
-        if (now.second() < 10) myLCD.print('0');
-          myLCD.print(now.second());
+if (now.minute() < 10) {
+  myLCD.print('0');
+}
+myLCD.print(now.minute());
+myLCD.print(':');
+
+if (now.second() < 10) {
+  myLCD.print('0');
+}
+myLCD.print(now.second());
 
     }
   }
