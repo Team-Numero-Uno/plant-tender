@@ -100,7 +100,7 @@ void loop() {
   int light = map(raw_light, 0, 1023, 0, 100);  // map the value from 0, 1023 to 0, 100
 
   // if conditions are right, turn the light on
-  if (light <= 70) {
+  if (light <= 70 && now.hour() > sunrise && now.hour() < sunset) {
     digitalWrite(relaySwitchPin, HIGH);
   }
 
