@@ -6,13 +6,16 @@
 // soil moisture subsystem
 Adafruit_seesaw ss;
 bool waterLow = true;
-const int setSaturation = 60;
+const int setSaturation = 1000;
 
 // Watering mechanism
 const int pumpPin = 9;
 const int waterLevelSensorPin = A0;
 const int lowWaterVal = 10;
 bool tankLow = false;
+bool pumpOn = false;
+
+int pumpTime = 0;
 
 // Light Detection and Emission
 const int lightSensor = A1;
@@ -64,12 +67,12 @@ void loop() {
     Soil Moisture Subsystem
   */
   // read soil moisture
-  uint16_t percent_soil = map(ss.touchRead(0), 0, 1023, 0, 100);
+  uint16_t percent_soil = ss.touchRead(0);
 
   // determine if water is needed
   if (percent_soil < setSaturation) {
     waterLow = true;
-  } else if (percent_soil == 6406) {
+  } else if (percent_soil == 65535) {
     // soil sensor error; restart
     ss.begin(0x36);
     Serial.println("Soil Sensor RESTART.");
@@ -87,11 +90,16 @@ void loop() {
     tankLow = false;
   }
 
-  if (waterLow && !tankLow) {
+  if (waterLow && !tankLow && !pumpOn) {
     analogWrite(pumpPin, 255);
-  } else {
+    pumpOn = true;
+    pumpTime = millis();
+  } else if (millis()-pumpTime > 5000 && pumpOn){
     analogWrite(pumpPin, 0);
   }
+
+  if (millis()-pumpTime > 30000) pumpOn = false;
+
 
   /*
 		Light detection and Emission
@@ -148,7 +156,7 @@ void loop() {
         myLCD.setCursor(0, 0);
         myLCD.print("Soil Moisture:");
         myLCD.setCursor(0, 1);
-        myLCD.print(percent_soil >= 60 ? "Adequate" : "Low");
+        myLCD.print(percent_soil >= setSaturation ? "Adequate" : "Low");
 
     } else if (mode == 3) {
         myLCD.setCursor(0, 0);
